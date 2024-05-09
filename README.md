@@ -1,70 +1,39 @@
-# Getting Started with Create React App
+# Purpose
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This repository is meant to be used only as a playground to replicate and test whay I believe is an unexpected behaviour using the `usePagination` hook from `@squidcloud/react` lib
 
-## Available Scripts
+## Assumptions
 
-In the project directory, you can run:
+This repository assums you have a [Squid](https://squid.cloud) project with a proper MongoDB integration with at least one collection
 
-### `npm start`
+## Setup
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- Make sure you have installed all the required packages with `yarn install`
+- Once all packages are installed, go to `src/index.js` and replace `appId` and `region` props with your Squid application id and its region
+- Go to `src/App.js` and addecuate the `useCollection` hook to use your Squid integration name for MongoDB and the collection name. As it is, it'll look for a `users` collection in a `test` integration
+- Finally run `yarn start` and open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Issue description
 
-### `npm test`
+### System use case
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+We want to paginate and sort a collection of records based off their `name` attribute. Just that
+This `name` attribute may have the followign format `[identifier] - description`; this is important for understanding the issue
 
-### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Issue
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+We're usign Squid to retrieve the data from MongoDB, so while playing around with `usePagination` hook, I found what I think is an unexpected behavior.
+`usePagination` seems to have issues paginating records with "special" characters, like `[]`
+The data returned by this hook changes based off `subscribe` and `pageSize` options values. Defining a `pageSize: 5`, if you use `subscribe: true` hook returns records starting with `[`, while using `subscribe: false` completly ignores records that starts with `[`
+Now, if you change the pagination for a number bigger than 5, it returns the missing records but pagination breaks. Requesting the next batch of data keeps returning the same set of data, making imposible to navigate a to a next page
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+This exercise is working with a data set of 17 documents on MongoDB, each one with an `_id` and `name` attribute, only two of those recrods containing `[` in `name`
 
-### `npm run eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Evidences:
+The following video serves as an evidence for the described issue
+Please see how data changes as soon as the `subscribe` value changes from `true` to `false`. Also pagination breaks when `pageSize` receives a value bigger than 5
+[![Video](https://youtu.be/nPBtnlFceC4)](https://youtu.be/nPBtnlFceC4)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+https://youtu.be/nPBtnlFceC4
